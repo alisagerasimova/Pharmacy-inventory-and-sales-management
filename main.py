@@ -15,7 +15,8 @@ class PharmacyApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Pharmacy OS Pro v11.1")
-        self.root.geometry("1400x900")
+        
+        self.root.state('zoomed')
         self.root.configure(bg=COLORS["bg"])
 
         self.cart = [] 
@@ -83,7 +84,7 @@ class PharmacyApp:
         self.ent_price = tk.Entry(f, font=("Segoe UI", 11), width=10); self.ent_price.grid(row=1, column=1, padx=5, pady=5)
         
         tk.Label(f, text="Ед. изм:", bg=COLORS["surface"], fg="white").grid(row=0, column=2, sticky="w")
-        self.ent_unit = ttk.Combobox(f, values=["уп", "фл", "туб", "шт"], width=8); self.ent_unit.grid(row=1, column=2, padx=5); self.ent_unit.set("уп")
+        self.ent_unit = ttk.Combobox(f, values=["уп", "фл", "шт"], width=8); self.ent_unit.grid(row=1, column=2, padx=5); self.ent_unit.set("уп")
         
         tk.Checkbutton(f, text="Нужен рецепт", variable=self.rx_var, bg=COLORS["surface"], fg=COLORS["accent"], selectcolor=COLORS["bg"]).grid(row=1, column=3, padx=10)
         
@@ -226,13 +227,13 @@ class PharmacyApp:
     def add_to_cart(self):
         sel = self.tree_stock.selection()
         qty = self.ent_qty_cart.get()
-        if sel and qty.isdigit():
+        if sel and qty.isdigit() and int(qty) > 0:
             sd = self.tree_stock.item(sel)['values']
             if int(qty) <= sd[2]:
                 res = self.cur.execute("SELECT m.id, m.price FROM medicines m JOIN stock s ON m.id = s.med_id WHERE s.id = ?", (sd[0],)).fetchone()
                 self.cart.append({'stock_id': sd[0], 'med_id': res[0], 'name': sd[1], 'qty': int(qty), 'price': res[1], 'sum': int(qty)*res[1]})
                 self.update_cart_ui(); self.ent_qty_cart.delete(0, tk.END)
-            else: messagebox.showwarning("!", "Мало на складе")
+            else: messagebox.showwarning("ОШИБКА", "Недостаточно продукции на складе")
 
     def remove_from_cart(self):
         sel = self.tree_cart.selection()
